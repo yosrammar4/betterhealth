@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Produits{% endblock %}
+
+{% block body %}
+    <h1>Liste des Produits</h1>
+
+    <a href="{{ path('ajouter_produit') }}" class="btn btn-success mb-3">Ajouter un Produit</a>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Catégorie</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for produit in produits %}
+                <tr>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.description }}</td>
+                    <td>{{ produit.quantite }}</td>
+                    <td>{{ produit.categorie.nom }}</td>
+                    <td>
+                        <a href="{{ path('modifier_produit', {id: produit.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                        <a href="{{ path('supprimer_produit', {id: produit.id}) }}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Voulez-vous vraiment supprimer ce produit ?');">Supprimer</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucun produit disponible.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
