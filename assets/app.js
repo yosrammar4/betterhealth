@@ -14,6 +14,10 @@ import './styles/flaticon.css';
 import './styles/magnific-popup.css';
 import './styles/nice-select.css';
 import './styles/slick.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap';
+
+
 
 import './styles/app.css';
 

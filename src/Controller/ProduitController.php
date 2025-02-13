@@ -8,24 +8,25 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
-class ProduitController extends AbstractController
+#[Route('/produit')]
+final class ProduitController extends AbstractController
 {
-    // 1️⃣ Afficher la liste des produits
-    #[Route('/', name: 'liste_produits')]
-    public function listeProduits(EntityManagerInterface $entityManager): Response
+    #[Route(name: 'app_produit_index', methods: ['GET'])]
+    public function index(EntityManagerInterface $entityManager): Response
     {
-        $produits = $entityManager->getRepository(Produit::class)->findAll();
+        $produits = $entityManager
+            ->getRepository(Produit::class)
+            ->findAll();
 
-        return $this->render('index.html.twig', [
+        return $this->render('produit/index.html.twig', [
             'produits' => $produits,
         ]);
     }
 
-    // 2️⃣ Ajouter un produit
-    #[Route('/produit/ajouter', name: 'ajouter_produit')]
-    public function ajouterProduit(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/new', name: 'app_produit_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $produit = new Produit();
         $form = $this->createForm(ProduitType::class, $produit);
@@ -35,18 +36,25 @@ class ProduitController extends AbstractController
             $entityManager->persist($produit);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Produit ajouté avec succès !');
-            return $this->redirectToRoute('liste_produits');
+            return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('ajouter.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('produit/new.html.twig', [
+            'produit' => $produit,
+            'form' => $form,
         ]);
     }
 
-    // 3️⃣ Modifier un produit
-    #[Route('/produit/modifier/{id}', name: 'modifier_produit')]
-    public function modifierProduit(Produit $produit, Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_produit_show', methods: ['GET'])]
+    public function show(Produit $produit): Response
+    {
+        return $this->render('produit/show.html.twig', [
+            'produit' => $produit,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_produit_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Produit $produit, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(ProduitType::class, $produit);
         $form->handleRequest($request);
@@ -54,23 +62,23 @@ class ProduitController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            $this->addFlash('success', 'Produit modifié avec succès !');
-            return $this->redirectToRoute('liste_produits');
+            return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('modifier.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('produit/edit.html.twig', [
+            'produit' => $produit,
+            'form' => $form,
         ]);
     }
 
-    // 4️⃣ Supprimer un produit
-    #[Route('/produit/supprimer/{id}', name: 'supprimer_produit')]
-    public function supprimerProduit(Produit $produit, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}', name: 'app_produit_delete', methods: ['POST'])]
+    public function delete(Request $request, Produit $produit, EntityManagerInterface $entityManager): Response
     {
-        $entityManager->remove($produit);
-        $entityManager->flush();
+        if ($this->isCsrfTokenValid('delete'.$produit->getId(), $request->getPayload()->getString('_token'))) {
+            $entityManager->remove($produit);
+            $entityManager->flush();
+        }
 
-        $this->addFlash('success', 'Produit supprimé avec succès !');
-        return $this->redirectToRoute('liste_produits');
+        return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
     }
 }
